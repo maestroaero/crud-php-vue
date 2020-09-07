@@ -1,5 +1,5 @@
 <?php
 $host = 'localhost';
 $database = 'structure';
-$user = 'non-root';
-$password = '123412341234';
+$user = 'paste your username';
+$password = 'paste your password';
