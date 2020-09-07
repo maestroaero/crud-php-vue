@@ -75,7 +75,7 @@
                                         <i class="fas fa-trash-alt"></i>
                                     </a></td>
                                 </tr>
-                                <tr class="text-center" v-for="folder in allElements.folders" v-if="folder.parent_id === currentFolderId">
+                                <tr class="text-center" v-for="folder in allElements.folders" v-if="folder.parent_id === currentFolderId && folder.id !== rootId">
                                     <td>{{ folder.id }}</td>
                                     <td><a href="#" @click="selectFolder(folder); goIntoFolder()"><i class="fas fa-folder"></i></a></td>
                                     <td>{{ folder.name }}</td>
@@ -171,7 +171,7 @@
                             <div class="form-group btn-block">
                                 <h5>Move to:</h5>
                                 <select class="form-group btn-group btn-block" v-model="currentElement.parent_id">
-                                    <option v-for="folder in allElements.folders" v-if="folder.id != currentElement.id" v-bind:value="folder.id">{{folder.name}}</option>
+                                    <option v-for="folder in allElements.folders" v-if="folder.id !== currentElement.id" v-bind:value="folder.id">{{folder.name}}</option>
                                 </select>
                             </div>
                             <div class="form-group">

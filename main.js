@@ -9,6 +9,7 @@ var app = new Vue({
         allElements: {folders: [], files:[]},
         newElement: {parent_id:"", name:"", file_type:"", data:""},
         currentFolderId: "0",
+        rootId: "0",
         currentElement:{},
         isFile: false
     },
@@ -26,7 +27,6 @@ var app = new Vue({
                     else{
                         app.allElements.folders = response.data.folders;
                         app.allElements.files = response.data.files;
-                        app.currentFolderId = app.allElements.folders[0].id;
                     }
                 }
             )
@@ -35,7 +35,7 @@ var app = new Vue({
 
         //Adding an element
         addElement(){
-            app.newElement.parent_id = app.currentFolderId;
+                app.newElement.parent_id = app.currentFolderId;
             post = "";
             if(app.isFile) {
                 post = "http://localhost:63342/test1/process.php?action=createFile";
@@ -116,7 +116,12 @@ var app = new Vue({
         //Changing id of showing folder
         goUpperFolder(){
             let f = app.allElements.folders.find(folder => folder.id === app.currentFolderId);
-            app.currentFolderId = f.parent_id;
+            if (f.parent_id != null){
+                app.currentFolderId = f.parent_id;
+            }
+            else {
+                app.currentFolderId = "0"
+            }
             app.setCurrentFolderName();
         },
 
