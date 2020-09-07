@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!-- CSS only -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+          integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z"
+          crossorigin="anonymous">
+
+    <style type="text/css">
+        .overlay {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0, 0.6);
+        }
+    </style>
+
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="container">
+                <div class="row mt-3">
+                    <div class="col-lg-6">
+                        <h3 class="text-info" id="currentFolderName"></h3>
+                    </div>
+                    <div class="col-lg-6">
+                        <button class="btn btn-info float-right" @click="showAddModal=true">
+                            <i class="fas fa-plus"></i>&nbsp;Create new here
+                        </button>
+                    </div>
+                </div>
+                <hr class="bg-info">
+                <div class="alert alert-danger" v-if="errorMsg">
+                    {{ errorMsg }}
+                </div>
+                <div class="alert alert-success" v-if="successMsg">
+                    {{ successMsg }}
+                </div>
+                <!--Displaing elms-->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <table class="table table-stripped">
+                            <thead>
+                                <tr class="text-center bg-info text-light">
+                                    <th>ID</th>
+                                    <th>Icon</th>
+                                    <th>Name</th>
+                                    <th>Creation date</th>
+                                    <th>Modification date</th>
+                                    <th>Description/Data</th>
+                                    <th>Type</th>
+                                    <th>Edit</th>
+                                    <th>Delete</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr> <button class="btn btn-secondary btn-block" @click="goUpperFolder()"><i class="fas fa-undo-alt"></i> Go back </button></tr>
+                                <tr class="text-center" v-for="file in allElements.files" v-if="file.parent_id === currentFolderId">
+                                    <td>{{ file.id }}</td>
+                                    <td><i class="fas fa-file"></i></td>
+                                    <td>{{ file.name }}</td>
+                                    <td>{{ file.creation_date }}</td>
+                                    <td>{{ file.modification_date }}</td>
+                                    <td> {{ file.data }}</td>
+                                    <td>{{ file.file_type }}</td>
+                                    <td><a href="#" class="text-success" @click="showEditModal=true; isFile=true; selectFile(file)">
+                                        <i class="fas fa-edit"></i>
+                                    </a></td>
+                                    <td><a href="#" class="text-danger" @click="showDeleteModal=true; isFile=true; selectFile(file)">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a></td>
+                                </tr>
+                                <tr class="text-center" v-for="folder in allElements.folders" v-if="folder.parent_id === currentFolderId">
+                                    <td>{{ folder.id }}</td>
+                                    <td><a href="#" @click="selectFolder(folder); goIntoFolder()"><i class="fas fa-folder"></i></a></td>
+                                    <td>{{ folder.name }}</td>
+                                    <td>{{ folder.creation_date }}</td>
+                                    <td>{{ folder.modification_date }}</td>
+                                    <td> {{ folder.data }}</td>
+                                    <td></td>
+                                    <td><a href="#" class="text-success" @click="showEditModal=true; selectFolder(folder)">
+                                        <i class="fas fa-edit"></i>
+                                    </a></td>
+                                    <td><a href="#" class="text-danger" @click="showDeleteModal=true; selectFolder(folder)">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--Create new element-->
+        <div class="overlay" v-if="showAddModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Create new element</h5>
+                        <button type="button" class="close" @click="showAddModal=false">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <form action="#" method="post">
+                            <div class="form-group">
+                                <input type="text" name="name"
+                                       class="form-control form-control-bg"
+                                       placeholder="Name" v-model="newElement.name">
+                            </div>
+                            <div class="form-group form-check">
+                                <input type="checkbox" class="form-check-input" id="elemcheck" v-model="isFile">
+                                <label class="form-check-label" for="elemcheck">File</label>
+                            </div>
+                            <select class="form-group btn-lg btn-block" v-if="isFile" v-model="newElement.file_type">
+                                <option value="Article">Article</option>
+                                <option value="New">New</option>
+                                <option value="Review">Review</option>
+                                <option value="Comment">Comment</option>
+                            </select>
+                            <div class="form-group">
+                                <input type="text" name="name"
+                                       class="form-control form-control-bg"
+                                       placeholder="Description/Data" v-model="newElement.data">
+                            </div>
+                            <div class="form-group">
+                                <button type="button" class="btn btn-info btn-block"
+                                        @click="showAddModal=false; addElement(); clearMsg();">Create new!</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--Edit element-->
+        <div class="overlay" v-if="showEditModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit element</h5>
+                        <button type="button" class="close" @click="showEditModal=false">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <form action="#" method="post">
+                            <div class="form-group">
+                                <input type="text" name="name"
+                                       class="form-control form-control-bg" v-model="currentElement.name">
+                            </div>
+                            <div class="form-group btn-lg btn-block">
+                                <select class="form-group btn-group btn-block" v-model="currentElement.file_type" v-if="isFile">
+                                    <option value="Article">Article</option>
+                                    <option value="New">New</option>
+                                    <option value="Review">Review</option>
+                                    <option value="Comment">Comment</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <input type="text" name="name"
+                                       class="form-control form-control-bg" v-model="currentElement.data">
+                            </div>
+                            <div class="form-group btn-block">
+                                <h5>Move to:</h5>
+                                <select class="form-group btn-group btn-block" v-model="currentElement.parent_id">
+                                    <option v-for="folder in allElements.folders" v-if="folder.id != currentElement.id" v-bind:value="folder.id">{{folder.name}}</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <button type="button" class="btn btn-info btn-block"
+                                        @click="showEditModal=false; updateElement(); clearMsg();">Edit</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--Delete element-->
+        <div class="overlay" v-if="showDeleteModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete element?</h5>
+                        <button type="button" class="close" @click="showDeleteModal=false">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <h4 class="text-danger">Are you sure want to delete this element?</h4>
+                        <h5>You are deleting {{ currentElement.name }}</h5>
+                        <button class="btn btn-danger btn-lg"
+                                @click="showDeleteModal=false; deleteElement(); clearMsg();">Yes</button>
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <button class="btn btn-Success btn-lg"
+                                @click="showDeleteModal=false">No</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+            integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+            integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+            integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+            crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/254cc042a5.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.20.0/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script type="text/javascript" src="main.js"></script>
+</body>
+</html>
